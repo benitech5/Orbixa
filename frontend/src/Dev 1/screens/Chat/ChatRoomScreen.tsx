@@ -23,6 +23,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useSettings } from '../../SettingsContext';
+import MediaPicker from '../../components/MediaPicker';
 
 type ChatRoomNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<MainStackParamList, 'ChatRoom'>,
@@ -100,6 +101,7 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
   const [isLoading, setIsLoading] = useState(true); // default to true
   const flatListRef = useRef<FlatList>(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Load messages from AsyncStorage on mount
   useEffect(() => {
@@ -287,8 +289,11 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
     console.log('Input value:', newMessage); // Debug log
     return (
       <View style={[styles.inputContainer, { backgroundColor: theme.background }]}> 
-        <TouchableOpacity style={styles.attachButton}>
-          <Icon name="add" size={24} color={theme.text} />
+        <TouchableOpacity 
+          style={styles.attachButton}
+          onPress={() => setShowMediaPicker(!showMediaPicker)}
+        >
+          <Icon name={showMediaPicker ? "close" : "add"} size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={[styles.textInputContainer, { backgroundColor: theme.card }]}> 
           <TextInput
@@ -353,6 +358,12 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
           onEndReachedThreshold={0.1}
         />
         
+        {showMediaPicker && (
+          <MediaPicker onMediaSelected={(url, type) => {
+            console.log('Media selected:', { url, type });
+            setShowMediaPicker(false);
+          }} />
+        )}
         {renderInputBar()}
       </KeyboardAvoidingView>
       <Modal
@@ -362,7 +373,7 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
         onRequestClose={() => setMenuVisible(false)}
       >
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} />
+          <View style={{ flex: 1, backgroundColor: 'rgba(199, 25, 25, 0.3)' }} />
         </TouchableWithoutFeedback>
         <View style={{ position: 'absolute', top: 60, right: 20, backgroundColor: '#fff', borderRadius: 8, elevation: 5, minWidth: 200 }}>
           {[

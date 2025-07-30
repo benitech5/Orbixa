@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // IMPORTANT: Replace with your laptop's local IP address for mobile testing
 // Example in AuthService.ts
-const API_BASE_URL = 'http://192.168.188.31:8082'; // <-- Set this to your laptop's IP
+const API_BASE_URL = 'http://10.132.219.185:8082'; // <-- Set this to your laptop's IP
+
 const API_URL = `${API_BASE_URL}/api/auth`;
 
 export const requestOtp = async (phoneNumber: string, name: string) => {
