@@ -288,50 +288,52 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
   const renderInputBar = () => {
     console.log('Input value:', newMessage); // Debug log
     return (
-      <View style={[styles.inputContainer, { backgroundColor: theme.background }]}> 
+      <View style={[styles.inputContainer, { backgroundColor: theme.card, borderTopColor: theme.border }]}> 
         <TouchableOpacity 
           style={styles.attachButton}
           onPress={() => setShowMediaPicker(!showMediaPicker)}
         >
           <Icon name={showMediaPicker ? "close" : "add"} size={24} color={theme.text} />
         </TouchableOpacity>
-        <View style={[styles.textInputContainer, { backgroundColor: theme.card }]}> 
-          <TextInput
-            style={[styles.textInput, { color: theme.text }]}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Type a message..."
-            placeholderTextColor={theme.subtext}
-            multiline
-            maxLength={1000}
-          />
-        </View>
-        {newMessage.trim().length > 0 ? (
-          <TouchableOpacity 
-            style={[styles.sendButton, { backgroundColor: 'red' }]} // Bright green for visibility
-            onPress={sendMessage}
-          >
-            <Icon name="send" size={20} color="#fff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.micButton}>
-            <Icon name="mic" size={24} color={theme.text} />
-          </TouchableOpacity>
-        )}
+        <TextInput
+          style={[styles.textInput, { 
+            borderColor: theme.border, 
+            backgroundColor: theme.background,
+            color: theme.text 
+          }]}
+          placeholder="Type a message..."
+          placeholderTextColor={theme.subtext}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          onSubmitEditing={sendMessage}
+          returnKeyType="send"
+          multiline={false}
+          onFocus={() => {
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }, 300);
+          }}
+        />
+        <TouchableOpacity 
+          style={styles.sendButton} 
+          onPress={sendMessage}
+        >
+          <Icon name="send" size={24} color={theme.accent} />
+        </TouchableOpacity>
       </View>
     );
   };
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+      <View style={[styles.safeArea, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
   if (error) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+      <View style={[styles.safeArea, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ color: theme.text }}>{error}</Text>
       </View>
     );
@@ -407,6 +409,9 @@ const ChatRoomScreen: React.FC<ChatRoomScreenProps> = ({ navigation, route }) =>
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -421,6 +426,7 @@ const styles = StyleSheet.create({
   messagesList: {
     paddingHorizontal: 16,
     paddingVertical: 8,
+    flexGrow: 1,
   },
   messageRow: {
     flexDirection: 'row',
@@ -442,42 +448,29 @@ const styles = StyleSheet.create({
   messageTime: { fontSize: 10, marginTop: 5, alignSelf: 'flex-end' },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    padding: 15,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
+    paddingBottom: 15,
+    alignItems: 'center',
+    marginBottom: Platform.OS === 'android' ? 20 : 0,
   },
   attachButton: {
     padding: 8,
     marginRight: 8,
   },
-  textInputContainer: {
-    flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 100,
-  },
   textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    maxHeight: 100,
     fontSize: 16,
-    maxHeight: 80,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  micButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: 10,
+    alignSelf: 'center',
+    padding: 8,
   },
 });
 

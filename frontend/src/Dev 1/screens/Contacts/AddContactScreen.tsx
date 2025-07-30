@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  SafeAreaView,
+  StatusBar,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList, RootStackParamList } from '../../types/navigation';
 import { useTheme } from '../../ThemeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsHeader from '../Settings/SettingsHeader';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
+
+const { height } = Dimensions.get('window');
 
 type AddContactNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<MainStackParamList, 'AddContact'>,
@@ -27,6 +35,8 @@ type AddContactNavigationProp = CompositeNavigationProp<
 
 interface AddContactScreenProps {
   navigation: AddContactNavigationProp;
+  onClose?: () => void;
+  isModal?: boolean;
 }
 
 interface ContactForm {
@@ -41,7 +51,7 @@ interface ContactForm {
   shareMyContact: boolean;
 }
 
-const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation }) => {
+const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation, onClose, isModal = false }) => {
   const { theme } = useTheme();
   
   const [contactForm, setContactForm] = useState<ContactForm>({
@@ -58,6 +68,60 @@ const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation }) => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // Animation values for modal
+  const [slideAnim] = useState(new Animated.Value(isModal ? height : 0));
+  const [dragAnim] = useState(new Animated.Value(0));
+
+  // Animate slide up on mount if modal
+  useEffect(() => {
+    if (isModal) {
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    }
+  }, [isModal]);
+
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationY: dragAnim } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      const { translationY, velocityY } = event.nativeEvent;
+
+      // If dragged down more than 100px or with high velocity, close the screen
+      if (translationY > 100 || velocityY > 500) {
+        handleBack();
+      } else {
+        // Snap back to original position
+        Animated.spring(dragAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }).start();
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (isModal && onClose) {
+      Animated.timing(slideAnim, {
+        toValue: height,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        onClose();
+      });
+    } else {
+      navigation.goBack();
+    }
+  };
 
   const handleInputChange = (field: keyof ContactForm, value: string | boolean) => {
     setContactForm(prev => ({
@@ -118,7 +182,7 @@ const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation }) => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.goBack()
+            onPress: () => handleBack()
           }
         ]
       );
@@ -264,12 +328,29 @@ const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  return (
+  const renderContent = () => (
     <KeyboardAvoidingView 
       style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SettingsHeader title="Add Contact" onBack={() => navigation.goBack()} />
+      {isModal ? (
+        <SafeAreaView style={styles.safeArea}>
+          <StatusBar barStyle="light-content" backgroundColor="#dc143c" />
+
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            {/* Drag Handle */}
+            <View style={styles.dragHandle} />
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.modalHeaderTitle}>Add Contact</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+        </SafeAreaView>
+      ) : (
+        <SettingsHeader title="Add Contact" onBack={handleBack} />
+      )}
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Quick Add Methods */}
@@ -423,9 +504,98 @@ const AddContactScreen: React.FC<AddContactScreenProps> = ({ navigation }) => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+
+  // Return modal wrapper or regular content
+  if (isModal) {
+    return (
+      <View style={styles.overlay}>
+        <TouchableOpacity style={styles.backdrop} onPress={handleBack} />
+        <PanGestureHandler
+          onGestureEvent={onGestureEvent}
+          onHandlerStateChange={onHandlerStateChange}
+        >
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{ translateY: slideAnim }, { translateY: dragAnim }],
+              },
+            ]}
+          >
+            {renderContent()}
+          </Animated.View>
+        </PanGestureHandler>
+      </View>
+    );
+  }
+
+  return renderContent();
 };
 
 const styles = StyleSheet.create({
+  // Modal styles
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  backdrop: {
+    flex: 1,
+  },
+  modalContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.7,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  modalHeader: {
+    backgroundColor: "#dc143c",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    position: "relative",
+  },
+  dragHandle: {
+    position: "absolute",
+    top: 8,
+    left: "50%",
+    marginLeft: -20,
+    width: 40,
+    height: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.6)",
+    borderRadius: 2,
+  },
+  backButton: {
+    padding: 8,
+  },
+  modalHeaderTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  
+  // Regular styles
   container: {
     flex: 1,
   },
