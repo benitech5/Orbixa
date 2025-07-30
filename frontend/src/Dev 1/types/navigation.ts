@@ -34,11 +34,16 @@ export type MainStackParamList = {
   Search: undefined;
   VoiceMessage: { chatId: string; chatName: string };
   InviteToGroup: { groupId: string };
-  ForwardMessage: undefined;
+  ForwardMessage: { messageId?: string; chatId?: string };
   SavedMessages: undefined;
-  PinnedMessages: undefined;
-  MediaShared: undefined;
-  Confirmation: { message: string; onConfirm: () => void; onCancel?: () => void };
+  PinnedMessages: { chatId: string };
+  MediaShared: { chatId: string; mediaType: 'photos' | 'videos' | 'documents' };
+  Confirmation: { 
+    message: string; 
+    action: 'logout' | 'addAccount' | string;
+    onConfirm?: () => void; 
+    onCancel?: () => void 
+  };
   Contacts: undefined;
   Calls: undefined;
   DataAndStorage: undefined;
@@ -48,18 +53,18 @@ export type MainStackParamList = {
   ChatFolders: undefined;
   InviteFriends: { groupId?: string; groupName?: string };
   AddContact: undefined;
-  ContactProfile: { contactId: string };
+  ContactProfile: { contactId: string; contactName?: string };
   RecentCalls: undefined;
-  CallInfo: undefined;
+  CallInfo: { callId: string; callType: 'incoming' | 'outgoing' | 'missed' };
   GlobalSearch: undefined;
-  InChatSearch: undefined;
+  InChatSearch: { chatId: string; chatName: string };
   EditProfile: undefined;
   BlockedUsers: undefined;
-  ChatFolderView: undefined;
+  ChatFolderView: { folderId: string; folderName: string };
   NewGroup: undefined;
-  GroupInfo: { groupId: string };
+  GroupInfo: { groupId: string; groupName?: string };
   NewChannel: undefined;
-  ChannelInfo: undefined;
-  JoinRequests: undefined;
+  ChannelInfo: { channelId: string; channelName?: string };
+  JoinRequests: { groupId: string; groupName?: string };
   PowerSaving: undefined;
 };

@@ -14,12 +14,12 @@ import ContactProfileScreen from '../screens/Contacts/ContactProfileScreen';
 import SavedMessagesScreen from '../screens/Chat/SavedMessagesScreen';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { logout } from '../store/authSlice';
-import { useTheme } from '../ThemeContext';
+import { useSettings } from '../SettingsContext';
 import NewGroupScreen from '../screens/Other/NewGroupScreen';
 
 // Placeholder for Orbixa Features
 const OrbixaFeaturesScreen = () => {
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   return (
     <View style={[styles.centered, { backgroundColor: theme.background }]}>
       <Text style={[styles.placeholderText, { color: theme.text }]}>Orbixa Features (Placeholder)</Text>
@@ -29,7 +29,7 @@ const OrbixaFeaturesScreen = () => {
 
 // Placeholder for Add Account
 const AddAccountScreen = () => {
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   return (
     <View style={[styles.centered, { backgroundColor: theme.background }]}>
       <Text style={[styles.placeholderText, { color: theme.text }]}>Add Account (Placeholder)</Text>
@@ -39,7 +39,7 @@ const AddAccountScreen = () => {
 
 // Placeholder for My Profile
 const MyProfileScreen = () => {
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   return (
     <View style={[styles.centered, { backgroundColor: theme.background }]}>
       <Text style={[styles.placeholderText, { color: theme.text }]}>My Profile (Placeholder)</Text>
@@ -51,7 +51,7 @@ const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props: any) {
   const dispatch = useAppDispatch();
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   
   const handleLogout = () => {
     props.navigation.closeDrawer();
@@ -126,7 +126,7 @@ function CustomDrawerContent(props: any) {
 }
 
 const DrawerNavigator = () => {
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   
   return (
     <Drawer.Navigator
@@ -229,7 +229,7 @@ const DrawerNavigator = () => {
 // Patch HomeScreen to show welcome message for only 2 seconds
 const PatchedHomeScreen = (props: any) => {
   const user = useAppSelector((state) => state.auth.user);
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   const [showWelcome, setShowWelcome] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => setShowWelcome(false), 2000);

@@ -1,10 +1,10 @@
 // src/navigation/MainNavigator.tsx
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MainStackParamList, AuthStackParamList } from '../types/navigation';
+import { MainStackParamList } from '../types/navigation';
 import HomeScreen from '../screens/Chat/HomeScreen';
 import ChatSettingsScreen from '../screens/Settings/ChatSettingsScreen';
-import ChatRoomScreen from '../screens/Chat/ChatRoomScreen';
+import ChatRoomScreen from '../screens/Chat/ChatDetailsScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import NotificationsAndSoundsScreen from '../screens/Settings/NotificationsAndSoundsScreen';
 import ContactsScreen from '../screens/Contacts/ContactsScreen';
@@ -26,7 +26,6 @@ import SavedMessagesScreen from '../screens/Chat/SavedMessagesScreen';
 import PinnedMessagesScreen from '../screens/Chat/PinnedMessagesScreen';
 import MediaSharedScreen from '../screens/Chat/MediaSharedScreen';
 import ConfirmationScreen from '../screens/Other/ConfirmationScreen';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
 import DataAndStorageScreen from '../screens/Settings/DataAndStorageScreen';
 import DevicesScreen from '../screens/Settings/DevicesScreen';
@@ -108,5 +107,3 @@ export const MainNavigator = () => (
     <Stack.Screen name="PowerSaving" component={PowerSavingScreen} />
   </Stack.Navigator>
 );
-
-type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;

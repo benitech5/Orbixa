@@ -1,102 +1,210 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Modal,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  pickAndUploadGallery,
+  pickAndUploadMusic,
+  pickAndUploadVideo,
+  pickAndUploadFile,
+  takePhotoAndUpload,
+  recordVideoAndUpload,
+} from '../api/CloudinaryService';
 
 interface MediaPickerProps {
-  onMediaSelected?: (url: string, type: string) => void;
+  onFileSelected?: (fileUrl: string, fileType: string, fileName: string) => void;
+  onError?: (error: string) => void;
+  theme?: any;
+  visible?: boolean;
+  onClose?: () => void;
 }
 
-const MediaPicker: React.FC<MediaPickerProps> = ({ onMediaSelected }) => {
-  const handleGalleryPress = () => {
-    // For now, just show an alert - no navigation
-    Alert.alert('Gallery', 'Gallery feature coming soon!');
+const MediaPicker: React.FC<MediaPickerProps> = ({
+  onFileSelected,
+  onError,
+  theme,
+  visible = false,
+  onClose,
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<string>('');
+
+  const handleFileUpload = async (
+    uploadFunction: () => Promise<string | null>,
+    fileType: string,
+    fileName: string
+  ) => {
+    setIsLoading(true);
+    setLoadingType(fileType);
+    
+    try {
+      const fileUrl = await uploadFunction();
+      if (fileUrl) {
+        onFileSelected?.(fileUrl, fileType, fileName);
+        onClose?.();
+      } else {
+        onError?.('Failed to upload file');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      onError?.('Upload failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setLoadingType('');
+    }
   };
 
-  const handleFilePress = () => {
-    // For now, just show an alert - no navigation
-    Alert.alert('File', 'File upload feature coming soon!');
-  };
-
-  const handleLocationPress = () => {
-    // For now, just show an alert - no navigation
-    Alert.alert('Location', 'Location sharing feature coming soon!');
-  };
-
-  const handleMusicPress = () => {
-    // For now, just show an alert - no navigation
-    Alert.alert('Music', 'Music sharing feature coming soon!');
-  };
+  const renderButton = (
+    icon: string,
+    title: string,
+    onPress: () => void,
+    type: string
+  ) => (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        { backgroundColor: theme?.accent || '#007AFF' },
+        isLoading && loadingType === type && styles.buttonDisabled,
+      ]}
+      onPress={onPress}
+      disabled={isLoading}
+    >
+      {isLoading && loadingType === type ? (
+        <ActivityIndicator color="white" size="small" />
+      ) : (
+        <Ionicons name={icon as any} size={24} color="white" />
+      )}
+      <Text style={styles.buttonText}>{title}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={handleGalleryPress}>
-          <View style={[styles.iconContainer, { backgroundColor: '#007AFF' }]}>
-            <Ionicons name="images" size={24} color="white" />
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[
+          styles.modalContent,
+          { backgroundColor: theme?.background || '#fff' }
+        ]}>
+          <View style={styles.header}>
+            <Text style={[
+              styles.headerTitle,
+              { color: theme?.text || '#000' }
+            ]}>
+              Select Media
+            </Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color={theme?.text || '#000'} />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.buttonText}>Gallery</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.button} onPress={handleFilePress}>
-          <View style={[styles.iconContainer, { backgroundColor: '#34C759' }]}>
-            <Ionicons name="document" size={24} color="white" />
+
+          <View style={styles.buttonGrid}>
+            {renderButton(
+              'images-outline',
+              'Gallery',
+              () => handleFileUpload(pickAndUploadGallery, 'image', 'Gallery Image'),
+              'gallery'
+            )}
+            
+            {renderButton(
+              'musical-notes-outline',
+              'Music',
+              () => handleFileUpload(pickAndUploadMusic, 'audio', 'Music File'),
+              'music'
+            )}
+            
+            {renderButton(
+              'videocam-outline',
+              'Video',
+              () => handleFileUpload(pickAndUploadVideo, 'video', 'Video File'),
+              'video'
+            )}
+            
+            {renderButton(
+              'document-outline',
+              'File',
+              () => handleFileUpload(pickAndUploadFile, 'file', 'Document'),
+              'file'
+            )}
+            
+            {renderButton(
+              'camera-outline',
+              'Camera',
+              () => handleFileUpload(takePhotoAndUpload, 'image', 'Camera Photo'),
+              'camera'
+            )}
+            
+            {renderButton(
+              'videocam-outline',
+              'Record',
+              () => handleFileUpload(recordVideoAndUpload, 'video', 'Recorded Video'),
+              'record'
+            )}
           </View>
-          <Text style={styles.buttonText}>File</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.button} onPress={handleLocationPress}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FF9500' }]}>
-            <Ionicons name="location" size={24} color="white" />
-          </View>
-          <Text style={styles.buttonText}>Location</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.button} onPress={handleMusicPress}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FF3B30' }]}>
-            <Ionicons name="musical-notes" size={24} color="white" />
-          </View>
-          <Text style={styles.buttonText}>Music</Text>
-        </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#1a1a1a',
-    borderTopWidth: 1,
-    borderTopColor: '#333',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  buttonRow: {
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    padding: 5,
+  },
+  buttonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   button: {
-    alignItems: 'center',
+    width: '48%',
+    height: 80,
+    borderRadius: 12,
     justifyContent: 'center',
-    padding: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+    flexDirection: 'row',
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
-    fontSize: 12,
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: '500',
+    color: 'white',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

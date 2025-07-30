@@ -8,7 +8,6 @@ import {
   Platform,
 } from "react-native";
 import Slider from "@react-native-community/slider";
-import { useTheme } from "../../ThemeContext";
 import { useSettings } from "../../SettingsContext";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -20,27 +19,25 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import SettingsHeader from './SettingsHeader';
 
 const ChatSettingsScreen = () => {
-  const { theme, toggleTheme, isDarkMode } = useTheme();
-  const { chatSettings, updateMessageSize, updateMessageCorner } = useSettings();
+  const { theme, toggleTheme, isDarkMode, currentMode, chatSettings, updateMessageSize, updateMessageCorner } = useSettings();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [textSize, setTextSize] = useState(chatSettings?.messageSize || 16);
 
+  const handleThemeToggle = () => {
+    toggleTheme();
+  };
+
+  const handleThemeNavigation = () => {
+    navigation.navigate('Theme' as never);
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chat Settings</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <SettingsHeader title="Chat Settings" onBack={() => navigation.goBack()} />
 
       <ScrollView
         style={styles.scrollView}
@@ -48,7 +45,7 @@ const ChatSettingsScreen = () => {
       >
         {/* Message Text Size Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Message text size</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primary }]}>Message text size</Text>
 
           <View style={styles.sliderContainer}>
             <Slider
@@ -58,27 +55,27 @@ const ChatSettingsScreen = () => {
               value={textSize}
               onValueChange={(val) => setTextSize(val)}
               onSlidingComplete={(val) => updateMessageSize(Math.round(val))}
-              minimumTrackTintColor="#b30032"
-              maximumTrackTintColor="#e0e0e0"
-              thumbTintColor="#b30032"
+              minimumTrackTintColor={theme.primary}
+              maximumTrackTintColor={theme.border}
+              thumbTintColor={theme.primary}
             />
-            <Text style={styles.sliderValue}>{Math.round(textSize)}</Text>
+            <Text style={[styles.sliderValue, { color: theme.primary }]}>{Math.round(textSize)}</Text>
           </View>
 
           {/* Chat Preview */}
-          <View style={styles.chatPreview}>
-            <View style={styles.previewBubble}>
-              <Text style={[styles.previewText, { fontSize: textSize }]}>
+          <View style={[styles.chatPreview, { backgroundColor: theme.card }]}>
+            <View style={[styles.previewBubble, { backgroundColor: theme.background }]}>
+              <Text style={[styles.previewText, { fontSize: textSize, color: theme.text }]}>
                 hello
               </Text>
             </View>
-            <View style={styles.previewBubble}>
-              <Text style={[styles.previewText, { fontSize: textSize }]}>
+            <View style={[styles.previewBubble, { backgroundColor: theme.background }]}>
+              <Text style={[styles.previewText, { fontSize: textSize, color: theme.text }]}>
                 how are you doing
               </Text>
             </View>
-            <View style={styles.previewBubbleRight}>
-              <Text style={[styles.previewTextRight, { fontSize: textSize }]}>
+            <View style={[styles.previewBubbleRight, { backgroundColor: theme.primary }]}>
+              <Text style={[styles.previewTextRight, { fontSize: textSize, color: '#fff' }]}>
                 yeah
               </Text>
             </View>
@@ -87,22 +84,22 @@ const ChatSettingsScreen = () => {
 
         {/* Chat Customization Options */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.customizationItem}>
-            <MaterialIcons name="wallpaper" size={24} color="#b30032" />
-            <Text style={styles.customizationText}>Change Chat Wallpaper</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <TouchableOpacity style={[styles.customizationItem, { borderBottomColor: theme.border }]}>
+            <MaterialIcons name="wallpaper" size={24} color={theme.primary} />
+            <Text style={[styles.customizationText, { color: theme.text }]}>Change Chat Wallpaper</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.customizationItem}>
-            <MaterialIcons name="palette" size={24} color="#b30032" />
-            <Text style={styles.customizationText}>Change Name Color</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <TouchableOpacity style={[styles.customizationItem, { borderBottomColor: theme.border }]}>
+            <MaterialIcons name="palette" size={24} color={theme.primary} />
+            <Text style={[styles.customizationText, { color: theme.text }]}>Change Name Color</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
           </TouchableOpacity>
         </View>
 
         {/* Color Theme Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Color theme</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primary }]}>Color theme</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -110,9 +107,9 @@ const ChatSettingsScreen = () => {
           >
             {[...Array(6)].map((_, index) => (
               <TouchableOpacity key={index} style={styles.themeOption}>
-                <View style={styles.themePreview}>
-                  <View style={styles.themeBubble1} />
-                  <View style={styles.themeBubble2} />
+                <View style={[styles.themePreview, { backgroundColor: theme.card }]}>
+                  <View style={[styles.themeBubble1, { backgroundColor: theme.background }]} />
+                  <View style={[styles.themeBubble2, { backgroundColor: theme.card }]} />
                 </View>
               </TouchableOpacity>
             ))}
@@ -121,22 +118,32 @@ const ChatSettingsScreen = () => {
 
         {/* Mode and Theme Options */}
         <View style={styles.section}>
-          <TouchableOpacity style={styles.customizationItem}>
-            <Ionicons name="moon" size={24} color="#b30032" />
-            <Text style={styles.customizationText}>Switch to night mode</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <TouchableOpacity 
+            style={[styles.customizationItem, { borderBottomColor: theme.border }]}
+            onPress={handleThemeToggle}
+          >
+            <Ionicons name="moon" size={24} color={theme.primary} />
+            <Text style={[styles.customizationText, { color: theme.text }]}>
+              Switch to {isDarkMode ? 'light' : 'dark'} mode
+            </Text>
+            <Text style={[styles.currentMode, { color: theme.subtext }]}>
+              {currentMode === 'system' ? 'System' : currentMode === 'dark' ? 'Dark' : 'Light'}
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.customizationItem}>
-            <MaterialIcons name="format-paint" size={24} color="#b30032" />
-            <Text style={styles.customizationText}>Browse themes</Text>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+          <TouchableOpacity 
+            style={[styles.customizationItem, { borderBottomColor: theme.border }]}
+            onPress={handleThemeNavigation}
+          >
+            <MaterialIcons name="format-paint" size={24} color={theme.primary} />
+            <Text style={[styles.customizationText, { color: theme.text }]}>Browse themes</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.subtext} />
           </TouchableOpacity>
         </View>
 
         {/* App Icon Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App icon</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primary }]}>App icon</Text>
           <View style={styles.appIconContainer}>
             <View style={styles.appIconOption}>
               <View style={styles.appIcon1}>
@@ -144,7 +151,7 @@ const ChatSettingsScreen = () => {
                   <MaterialIcons name="send" size={20} color="#fff" />
                 </View>
               </View>
-              <Text style={styles.appIconText}>ORBIXA</Text>
+              <Text style={[styles.appIconText, { color: theme.text }]}>ORBIXA</Text>
             </View>
 
             <View style={styles.appIconOption}>
@@ -154,38 +161,18 @@ const ChatSettingsScreen = () => {
                   <MaterialIcons name="send" size={12} color="#fff" />
                 </View>
               </View>
-              <Text style={styles.appIconText}>ORBIXA</Text>
+              <Text style={[styles.appIconText, { color: theme.text }]}>ORBIXA</Text>
             </View>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    backgroundColor: "#b30032",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  headerSpacer: {
-    width: 40,
   },
   scrollView: {
     flex: 1,
@@ -194,10 +181,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   sectionTitle: {
-    color: "#b30032",
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 12,
@@ -212,19 +197,16 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   sliderValue: {
-    color: "#b30032",
     fontSize: 16,
     fontWeight: "bold",
     minWidth: 30,
   },
   chatPreview: {
-    backgroundColor: "rgba(135, 206, 250, 0.1)",
     borderRadius: 12,
     padding: 16,
     minHeight: 120,
   },
   previewBubble: {
-    backgroundColor: "#fff",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -233,10 +215,9 @@ const styles = StyleSheet.create({
     maxWidth: "70%",
   },
   previewText: {
-    color: "#333",
+    // color will be set dynamically
   },
   previewBubbleRight: {
-    backgroundColor: "#b30032",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -251,13 +232,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   customizationText: {
     flex: 1,
     fontSize: 16,
-    color: "#333",
     marginLeft: 12,
+  },
+  currentMode: {
+    fontSize: 14,
+    marginRight: 8,
   },
   themeScroll: {
     marginTop: 8,
@@ -269,7 +252,6 @@ const styles = StyleSheet.create({
   themePreview: {
     width: 50,
     height: 50,
-    backgroundColor: "#e8f5e8",
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -278,14 +260,12 @@ const styles = StyleSheet.create({
   themeBubble1: {
     width: 20,
     height: 12,
-    backgroundColor: "#fff",
     borderRadius: 6,
     marginBottom: 4,
   },
   themeBubble2: {
     width: 16,
     height: 10,
-    backgroundColor: "#e8f5e8",
     borderRadius: 5,
   },
   appIconContainer: {
@@ -346,7 +326,6 @@ const styles = StyleSheet.create({
   appIconText: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#333",
   },
 });
 

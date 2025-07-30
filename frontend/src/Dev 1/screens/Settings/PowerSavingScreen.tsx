@@ -1,79 +1,173 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Switch } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5, FontAwesome } from '@expo/vector-icons';
-import { useTheme } from '../../ThemeContext';
-import { useNavigation } from '@react-navigation/native';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons, FontAwesome5, FontAwesome } from '@expo/vector-icons';
+import { useSettings } from '../../SettingsContext';
 import SettingsHeader from './SettingsHeader';
+import { useNavigation } from '@react-navigation/native';
 
 const PowerSavingScreen = () => {
-  const { theme } = useTheme();
   const navigation = useNavigation();
+  const { theme } = useSettings();
+  const [powerSavingEnabled, setPowerSavingEnabled] = useState(false);
+  const [batteryThreshold, setBatteryThreshold] = useState(20);
+
+  const powerSavingOptions = [
+    {
+      id: 'stickers',
+      label: 'Stickers and GIFs',
+      enabled: false,
+      icon: <MaterialCommunityIcons name="sticker-emoji" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'emoji',
+      label: 'Emoji animations',
+      enabled: false,
+      icon: <Ionicons name="happy-outline" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'messageEffects',
+      label: 'Message effects',
+      enabled: false,
+      icon: <MaterialCommunityIcons name="message-processing-outline" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'callEffects',
+      label: 'Call effects',
+      enabled: false,
+      icon: <Ionicons name="call-outline" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'videoPlayback',
+      label: 'Video playback effects',
+      enabled: false,
+      icon: <MaterialIcons name="play-circle-outline" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'videoCalls',
+      label: 'Video call effects',
+      enabled: false,
+      icon: <FontAwesome5 name="file-video" size={22} color={theme.accent} style={styles.icon} />,
+    },
+    {
+      id: 'backgroundEffects',
+      label: 'Background effects',
+      enabled: false,
+      icon: <FontAwesome name="exchange" size={22} color={theme.accent} style={styles.icon} />,
+    },
+  ];
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
-      <SettingsHeader title="Power Saving" onBack={navigation.goBack} />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingTop: 24 }}>
-        {/* Power Saving Mode */}
-        <Text style={[styles.sectionHeader, { color: theme.accent }]}>Power Saving Mode <Text style={{ color: theme.subtext, fontWeight: 'normal' }}>OFF</Text></Text>
-        <View style={styles.row}>
-          <Text style={[styles.label, { color: theme.text }]}>Off</Text>
-          <Text style={[styles.label, { color: theme.text }]}>When below 10%</Text>
-          <Switch value={false} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-          <Text style={[styles.label, { color: theme.text }]}>On</Text>
-        </View>
-        <Slider style={{width: '100%'}} minimumValue={0} maximumValue={100} value={10} minimumTrackTintColor={theme.accent} thumbTintColor={theme.accent} />
-        <Text style={[styles.infoText, { color: theme.subtext }]}>Automatically reduce power usage and animations when your battery is below 10%.</Text>
+      <SettingsHeader title="Power Saving" onBack={() => navigation.goBack()} />
 
-        {/* Power saving options */}
-        <Text style={[styles.sectionHeader, { color: theme.accent }]}>Power saving options</Text>
-        <View style={styles.row}>
-          <MaterialCommunityIcons name="sticker-emoji" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Animated Stickers 2/2</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
+      <View style={styles.container}>
+        {/* Battery Threshold Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionHeader, { color: theme.accent }]}>
+            Power saving mode
+            <Text style={{ color: theme.subtext, fontWeight: 'normal' }}>
+              {' '}Reduces battery usage by limiting some features
+            </Text>
+          </Text>
+
+          <View style={styles.thresholdContainer}>
+            <Text style={[styles.label, { color: theme.text }]}>Off</Text>
+            <Text style={[styles.label, { color: theme.text }]}>Below {batteryThreshold}%</Text>
+          </View>
+
+          <Switch
+            value={powerSavingEnabled}
+            onValueChange={setPowerSavingEnabled}
+            trackColor={{ false: theme.border, true: theme.accent }}
+            thumbColor={theme.accent}
+          />
+
+          <Text style={[styles.label, { color: theme.text }]}>On</Text>
+
+          <Slider
+            style={styles.slider}
+            minimumValue={5}
+            maximumValue={50}
+            value={batteryThreshold}
+            onValueChange={setBatteryThreshold}
+            minimumTrackTintColor={theme.accent}
+            thumbTintColor={theme.accent}
+          />
+
+          <Text style={[styles.infoText, { color: theme.subtext }]}>
+            Power saving mode will automatically activate when your battery level drops below the selected threshold.
+          </Text>
         </View>
-        <View style={styles.row}>
-          <Ionicons name="happy-outline" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Animated Emoji 1/3</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
+
+        {/* Power Saving Options */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionHeader, { color: theme.accent }]}>Power saving options</Text>
+          
+          {powerSavingOptions.map((option) => (
+            <View key={option.id} style={styles.optionRow}>
+              {option.icon}
+              <Text style={[styles.label, { color: theme.text, flex: 1 }]}>{option.label}</Text>
+              <Switch
+                value={option.enabled}
+                onValueChange={() => {}}
+                trackColor={{ false: theme.border, true: theme.accent }}
+                thumbColor={theme.accent}
+              />
+            </View>
+          ))}
+
+          <Text style={[styles.infoText, { color: theme.subtext }]}>
+            These features will be limited when power saving mode is active to help conserve battery life.
+          </Text>
         </View>
-        <View style={styles.row}>
-          <MaterialCommunityIcons name="message-processing-outline" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Animations in Chats 2/6</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-        </View>
-        <View style={styles.row}>
-          <Ionicons name="call-outline" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Animations in Calls</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-        </View>
-        <View style={styles.row}>
-          <MaterialIcons name="play-circle-outline" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Autoplay Videos</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-        </View>
-        <View style={styles.row}>
-          <FontAwesome5 name="file-video" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Autoplay GIFs</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-        </View>
-        <View style={styles.row}>
-          <FontAwesome name="exchange" size={22} color={theme.accent} style={styles.icon} />
-          <Text style={[styles.label, { color: theme.text, flex: 1 }]}>Enable Smooth Transitions</Text>
-          <Switch value={true} thumbColor={theme.accent} trackColor={{ true: '#ffd6d6', false: '#ccc' }} />
-        </View>
-        <Text style={[styles.infoText, { color: theme.subtext }]}>You can disable animated transitions between different sections of the app.</Text>
-      </ScrollView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  sectionHeader: { fontSize: 16, fontWeight: 'bold', marginTop: 24, marginBottom: 8 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderColor: '#eee' },
-  icon: { marginRight: 16 },
-  label: { fontSize: 15 },
-  infoText: { fontSize: 13, marginVertical: 10 },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  thresholdContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+    marginBottom: 16,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  icon: {
+    marginRight: 12,
+  },
 });
 
-export default PowerSavingScreen; 
+export default PowerSavingScreen;
