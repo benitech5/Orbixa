@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = "http://192.168.188.31:8082/api"; // Use your backend IP and port
+export const API_BASE_URL = "http://10.244.15.48:8082/api"; // Use your backend IP and port
 
 export const API_ENDPOINTS = {
   AUTH: `${API_BASE_URL}/auth`,
